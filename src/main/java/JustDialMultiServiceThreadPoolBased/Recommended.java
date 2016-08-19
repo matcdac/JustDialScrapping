@@ -1,7 +1,8 @@
-package JustDial;
+package JustDialMultiServiceThreadPoolBased;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ThreadPoolExecutor;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
@@ -19,7 +20,11 @@ public class Recommended extends Base {
 		
 		for(WebElement item : listItems) {
 			String originalText = item.getText();
-			recommendedNames.add(originalText.substring(0, originalText.indexOf(" [+]")));
+			try {
+				recommendedNames.add(originalText.substring(0, originalText.indexOf(" [+]")));
+			} catch(Exception e) {
+				recommendedNames.add(originalText);
+			}
 		}
 		
 		wd.close();
@@ -28,15 +33,14 @@ public class Recommended extends Base {
 		
 	}
 	
-	public void process(String search, String city) {
-
+	public void process(String search, String city, ThreadPoolExecutor pool) {
+		
 		String input = search+" ("+city+")";
 		List<String> recommendedSearches = getRecommendedSearchesFor(input);
 		
 		for(String query : recommendedSearches) {
-			Searches searches = new Searches(query);
-			Thread thread = new Thread(searches, query);
-			thread.start();
+			Searches searches = new Searches(search, city, query);
+			pool.execute(searches);
 		}
 		
 	}

@@ -1,4 +1,4 @@
-package JustDial;
+package JustDialMultiServiceThreadBased;
 
 public class Data {
 	

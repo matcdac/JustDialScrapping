@@ -1,4 +1,4 @@
-package JustDial;
+package JustDialMultiServiceThreadPoolBased;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -14,9 +14,13 @@ import org.openqa.selenium.interactions.Actions;
 
 public class Searches extends Base implements Runnable {
 	
+	private String search;
+	private String city;
 	private String query;
 	
-	public Searches(String query) {
+	public Searches(String search, String city, String query) {
+		this.search = search+"\\";
+		this.city = city+"\\";
 		this.query = query;
 	}
 	
@@ -80,21 +84,31 @@ public class Searches extends Base implements Runnable {
 		
 		System.out.println("Started saving data of records for : "+query);
 		
-		File file = new File(localPath+query+".csv");
+		File dir = new File(localPath+city+search);
+		File file = new File(localPath+city+search+query+".csv");
+		
+		try {
+			dir.mkdirs();
+			file.createNewFile();
+		} catch (IOException e) {
+			e.printStackTrace();
+			System.err.println("Could not Create File in Location : "+file.getAbsolutePath());
+		}
+		
 		FileWriter outputFile = null;
 		
 		try {
 			outputFile = new FileWriter(file);
 		} catch (IOException e) {
 			e.printStackTrace();
-			System.err.println("Could not create/open File in Location : "+file.getAbsolutePath());
+			System.err.println("Could not Open File in Location : "+file.getAbsolutePath());
 		}
 		
 		try {
 			outputFile.write( Data.firstLineForExcel );
 		} catch (IOException e) {
 			e.printStackTrace();
-			System.err.println("Could not write firstLine of Excel File in Location : "+file.getAbsolutePath());
+			System.err.println("Could not Write firstLine of Excel File in Location : "+file.getAbsolutePath());
 		}
 		
 		for(Data entry : data) {
@@ -102,7 +116,7 @@ public class Searches extends Base implements Runnable {
 				outputFile.write( entry.toStringForExcel() );
 			} catch (IOException e) {
 				e.printStackTrace();
-				System.err.println("Could not write File in Location : "+file.getAbsolutePath());
+				System.err.println("Could not Write File in Location : "+file.getAbsolutePath());
 			}
 		}
 		
@@ -110,7 +124,7 @@ public class Searches extends Base implements Runnable {
 			outputFile.close();
 		} catch (IOException e) {
 			e.printStackTrace();
-			System.err.println("Could not close File in Location : "+file.getAbsolutePath());
+			System.err.println("Could not Close File in Location : "+file.getAbsolutePath());
 		}
 		
 		System.out.println("Successfully saved to : "+file);

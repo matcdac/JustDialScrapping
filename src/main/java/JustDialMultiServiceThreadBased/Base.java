@@ -1,4 +1,4 @@
-package JustDial;
+package JustDialMultiServiceThreadBased;
 
 import java.util.concurrent.TimeUnit;
 
