@@ -1,4 +1,4 @@
-package JustDialMultiServiceThreadsControlledParallelStream;
+package main.java.JustDialMultiServiceThreadsControlledParallelStream;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -31,11 +31,19 @@ public class Searches extends Base implements Runnable {
 		System.out.println("Started fetching records for : "+query);
 		JavascriptExecutor jse = (JavascriptExecutor)wd;
 		
+		WebElement paginationDiv = wd.findElement(By.id("srchpagination"));
+
+        //This will scroll the page Horizontally till the element is found
+        jse.executeScript("arguments[0].scrollIntoView();", paginationDiv);
+		
+		/*
 		int i=0;
 		while(i<4000) {
-			jse.executeScript("window.scrollBy(0,10000)", "");
+			jse.executeScript("window.scrollBy(0, (document.body.scrollHeight)-1000)");
+			// jse.executeScript("window.scrollBy(0,100)", "");
 			i++;
 		}
+		*/
 		
 		/*jse.executeScript("var bg = document.getElementById(\"content\")", "");
 		jse.executeScript("var y = 100", "");
@@ -60,24 +68,50 @@ public class Searches extends Base implements Runnable {
 			.findElement(By.className("colsp"))
 			.findElement(By.tagName("section"))
 			.findElement(By.className("store-details"));
+		
 		Data d = new Data();
 		
 		try {
-			d.setName(one.findElement(By.tagName("h4")).findElement(By.tagName("span")).findElement(By.tagName("a")).getText());
+			d.setName(one.findElement(By.tagName("h2")).findElement(By.tagName("span")).findElement(By.tagName("a")).findElement(By.tagName("span")).getText());
 		} catch(Exception e) {
 			d.setName("");
 		}
 		
 		try {
-			d.setPhone(one.findElement(By.className("contact-info")).findElement(By.tagName("span")).findElement(By.tagName("a")).getText());
+			d.setRating(one.findElement(By.className("newrtings")).findElement(By.className("green-box")).getText());
 		} catch(Exception e) {
+			d.setRating("");
+		}
+		
+		try {
+			String voteStr = one.findElement(By.className("newrtings")).findElement(By.className("lng_vote")).getText();
+			if (null != voteStr) {
+				voteStr = voteStr.trim();
+				voteStr = voteStr.split(" ")[0];
+			}
+			d.setVotes(voteStr);
+		} catch(Exception e) {
+			d.setVotes("");
+		}
+		
+		try {
+			List<WebElement> spanElements = one.findElements(By.className("mobilesv"));
+			String phn = new String();
+			for (WebElement spanElement : spanElements) {
+				String classAttributeValue = spanElement.getAttribute("class");
+				String digit = PhoneNumberDecoder.identify(classAttributeValue);
+				phn = phn + digit;
+			}
+			d.setPhone(phn);
+		} catch (Exception e) {
+			e.printStackTrace();
 			d.setPhone("");
 		}
 		
 		try {
 			WebElement addressElement = one.findElement(By.className("address-info")).findElement(By.tagName("span")).findElement(By.tagName("a"));
 			action.moveToElement(addressElement).build().perform();
-			d.setAddress(addressElement.findElement(By.tagName("span")).getText());
+			d.setAddress(addressElement.findElement(By.className("mrehover")).findElement(By.className("cont_fl_addr")).getText());
 		} catch(Exception e) {
 			d.setAddress("");
 		}
@@ -159,11 +193,14 @@ public class Searches extends Base implements Runnable {
 		WebElement searchButton = wd.findElement(By.className("search-button"));
 		searchButton.click();
 		
-		//try to scroll the page till the end, to get most results out of it
-		scrollDownThePageForSometime();
-		
 		//change the wait time, since no more loading is needed, for client to communicate with server
-		wd.manage().timeouts().implicitlyWait(1, TimeUnit.MILLISECONDS);
+		//wd.manage().timeouts().implicitlyWait(1000, TimeUnit.MILLISECONDS);
+		
+		//try to scroll the page till the end, to get most results out of it
+		//scrollDownThePageForSometime();
+		
+		// TODO : add pagination
+		// TODO : parse all pages
 		
 		//extract data
 		List<Data> data = extractData();

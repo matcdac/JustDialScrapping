@@ -1,4 +1,4 @@
-package JustDialMultiServiceThreadsControlledParallelStream;
+package main.java.JustDialMultiServiceThreadsControlledParallelStream;
 
 import java.lang.Thread.State;
 import java.util.ArrayList;
