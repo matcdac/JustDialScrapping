@@ -8,6 +8,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
@@ -185,7 +186,7 @@ public class Searches extends Base implements Runnable {
 		
 	}
 	
-	private void saveDataInExcel(Collection<Data> data) {
+	private void saveDataInExcel(Collection<Data> collection) {
 		
 		System.out.println("Started saving data of records for : "+query);
 		
@@ -216,7 +217,7 @@ public class Searches extends Base implements Runnable {
 			System.err.println("Could not Write firstLine of Excel File in Location : "+file.getAbsolutePath());
 		}
 		
-		for(Data entry : data) {
+		for(Data entry : collection) {
 			try {
 				outputFile.write( entry.toStringForExcel() );
 			} catch (IOException e) {
@@ -244,7 +245,7 @@ public class Searches extends Base implements Runnable {
 		searchButton.click();
 		
 		//change the wait time, since no more loading is needed, for client to communicate with server
-		//wd.manage().timeouts().implicitlyWait(1000, TimeUnit.MILLISECONDS);
+		wd.manage().timeouts().implicitlyWait(1000, TimeUnit.MILLISECONDS);
 		
 		//try to scroll the page till the end, to get most results out of it
 		//scrollDownThePageForSometime();
@@ -260,7 +261,7 @@ public class Searches extends Base implements Runnable {
 		
 		Set<Data> allData = new HashSet<Data>();
 		
-		List<Data> data = new ArrayList<Data>();
+		List<Data> currentData = new ArrayList<Data>();
 		
 		do {
 			
@@ -279,13 +280,13 @@ public class Searches extends Base implements Runnable {
 			}
 			
 			//extract data
-			data = extractData();
+			currentData = extractData();
 			
-			allData.addAll(data);
+			allData.addAll(currentData);
 			
 			++currentPageNumber;
 			
-		} while (data.size() > 0 && currentPageNumber <= 100);
+		} while (currentData.size() > 0 && currentPageNumber <= 100);
 		
 		//save data in excel
 		saveDataInExcel(allData);
@@ -298,7 +299,12 @@ public class Searches extends Base implements Runnable {
 	public void run() {
 		
 		System.out.println("Thread Starts : "+query);
-		searchInJustDial();
+		try {
+			searchInJustDial();
+		} catch (Exception e) {
+			System.err.println("<- failed for (search) " + search + " (city) " + city + " (query) " + query);
+			e.printStackTrace();
+		}
 		System.out.println("Thread Ends : "+query);
 		
 	}
