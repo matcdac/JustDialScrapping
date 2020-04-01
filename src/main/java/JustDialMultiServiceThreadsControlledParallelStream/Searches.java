@@ -4,13 +4,15 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
+import java.util.Set;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebElement;
-import org.openqa.selenium.interactions.Actions;
+//import org.openqa.selenium.interactions.Actions;
 
 public class Searches extends Base implements Runnable {
 	
@@ -21,20 +23,44 @@ public class Searches extends Base implements Runnable {
 	private List<Data> data;
 	
 	public Searches(String search, String city, String query) {
-		this.search = search+"\\";
-		this.city = city+"\\";
+		this.search = search+"/";
+		this.city = city+"/";
 		this.query = query;
 	}
 	
 	private void scrollDownThePageForSometime() {
 		
 		System.out.println("Started fetching records for : "+query);
-		JavascriptExecutor jse = (JavascriptExecutor)wd;
+		JavascriptExecutor jse = (JavascriptExecutor) wd;
 		
+		/*
+		int i=0;
+		while(i<100) {
+			jse.executeScript("window.scrollBy(0, 50);");
+			try {
+				Thread.currentThread().sleep(200);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			i++;
+		}
+		*/
+		
+		/*
+		// wrong approach
+		int i=0;
+		while(i<100) {
+			jse.executeScript("setTimeout(function() { window.scrollBy(0, 50); },200);");
+			i++;
+		}
+		*/
+		
+		/*
 		WebElement paginationDiv = wd.findElement(By.id("srchpagination"));
 
         //This will scroll the page Horizontally till the element is found
         jse.executeScript("arguments[0].scrollIntoView();", paginationDiv);
+        */
 		
 		/*
 		int i=0;
@@ -62,8 +88,6 @@ public class Searches extends Base implements Runnable {
 	
 	private void extractDataAndInsertInList(WebElement item) {
 		
-		Actions action = new Actions(wd);
-		
 		WebElement one = item.findElement(By.tagName("section"))
 			.findElement(By.className("colsp"))
 			.findElement(By.tagName("section"))
@@ -72,7 +96,22 @@ public class Searches extends Base implements Runnable {
 		Data d = new Data();
 		
 		try {
-			d.setName(one.findElement(By.tagName("h2")).findElement(By.tagName("span")).findElement(By.tagName("a")).findElement(By.tagName("span")).getText());
+			WebElement anchor = one.findElement(By.tagName("h2")).findElement(By.tagName("span")).findElement(By.tagName("a"));
+			// String name = anchor.findElement(By.tagName("span")).getText();
+			String titleText = anchor.getAttribute("title");
+			String[] parts = titleText.split(" in ");
+			String name = parts[0];
+			d.setName(name);
+			if (parts.length > 1) {
+				String[] addressParts = parts[1].split(", ");
+				String locality = addressParts[0];
+				d.setLocality(locality);
+				String cityTmp = addressParts[1];
+				d.setCity(cityTmp);
+			} else {
+				d.setLocality("");
+				d.setCity("");
+			}
 		} catch(Exception e) {
 			d.setName("");
 		}
@@ -108,13 +147,24 @@ public class Searches extends Base implements Runnable {
 			d.setPhone("");
 		}
 		
+		/*
 		try {
-			WebElement addressElement = one.findElement(By.className("address-info")).findElement(By.tagName("span")).findElement(By.tagName("a"));
-			action.moveToElement(addressElement).build().perform();
-			d.setAddress(addressElement.findElement(By.className("mrehover")).findElement(By.className("cont_fl_addr")).getText());
+			Actions action = new Actions(wd);
+			WebElement addressElement = one.findElement(By.className("address-info")).findElement(By.tagName("span")).findElement(By.tagName("a")).findElement(By.className("mrehover")).findElement(By.className("cont_fl_addr"));
+			JavascriptExecutor jse = (JavascriptExecutor)wd;
+			jse.executeScript("arguments[0].scrollIntoView();", addressElement);
+			action.moveToElement(addressElement)
+				.build()
+				.perform();
+			String addrs = addressElement.getText();
+			System.out.println("-> " + addrs);
+			d.setAddress(addrs);
 		} catch(Exception e) {
+			System.out.println("<- (error) " + e);
+			e.printStackTrace();
 			d.setAddress("");
 		}
+		*/
 		
 		data.add(d);
 	
@@ -135,7 +185,7 @@ public class Searches extends Base implements Runnable {
 		
 	}
 	
-	private void saveDataInExcel(List<Data> data) {
+	private void saveDataInExcel(Collection<Data> data) {
 		
 		System.out.println("Started saving data of records for : "+query);
 		
@@ -202,11 +252,43 @@ public class Searches extends Base implements Runnable {
 		// TODO : add pagination
 		// TODO : parse all pages
 		
-		//extract data
-		List<Data> data = extractData();
+		String searchUrl = wd.getCurrentUrl();
+		int currentPageNumber = 1;
+		
+		// https://www.justdial.com/Bangalore/Restaurants-Pure-Veg/nct-10396867
+		// https://www.justdial.com/Bangalore/Restaurants-Pure-Veg/nct-10396867/page-2
+		
+		Set<Data> allData = new HashSet<Data>();
+		
+		List<Data> data = new ArrayList<Data>();
+		
+		do {
+			
+			if (currentPageNumber > 1) {
+				String nextUrl = searchUrl + "/page-" + currentPageNumber;
+				System.out.println("-> (expectation) " + nextUrl);
+				
+				String currentUrl = null;
+				
+				while (!nextUrl.equals(currentUrl)) {
+					wd.get(nextUrl);
+					currentUrl = wd.getCurrentUrl();
+					System.out.println("-> (reality) " + currentUrl);
+				}
+				
+			}
+			
+			//extract data
+			data = extractData();
+			
+			allData.addAll(data);
+			
+			++currentPageNumber;
+			
+		} while (data.size() > 0 && currentPageNumber <= 100);
 		
 		//save data in excel
-		saveDataInExcel(data);
+		saveDataInExcel(allData);
 		
 		//Close the browser, i.e. Web Driver
 		wd.close();

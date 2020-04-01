@@ -4,11 +4,14 @@ public class Data {
 	
 	private String name;
 	private String phone;
-	private String address;
 	private String rating;
 	private String votes;
+	//private String address;
+	private String locality;
+	private String city;
 	
-	public static final String firstLineForExcel = "\"Name\",\"Phone\",\"Address\",\"Rating\",\"Votes\"\n";
+	//public static final String firstLineForExcel = "\"Name\",\"Phone\",\"Rating\",\"Votes\",\"Address\",\"Locality\",\"City\"\n";
+	public static final String firstLineForExcel = "\"Name\",\"Phone\",\"Rating\",\"Votes\",\"Locality\",\"City\"\n";
 	
 	public String getName() {
 		return name;
@@ -25,12 +28,6 @@ public class Data {
 		phone = phone.replace('-', ' ');
 		this.phone = phone;
 	}
-	public String getAddress() {
-		return address;
-	}
-	public void setAddress(String address) {
-		this.address = address;
-	}
 	public String getRating() {
 		return rating;
 	}
@@ -43,14 +40,36 @@ public class Data {
 	public void setVotes(String votes) {
 		this.votes = votes;
 	}
+	/*
+	public String getAddress() {
+		return address;
+	}
+	public void setAddress(String address) {
+		this.address = address;
+	}
+	*/
+	public String getLocality() {
+		return locality;
+	}
+	public void setLocality(String locality) {
+		this.locality = locality;
+	}
+	public String getCity() {
+		return city;
+	}
+	public void setCity(String city) {
+		this.city = city;
+	}
 	
 	public String toStringForExcel() {
-		return "\"" + name + "\",\"" + phone + "\",\"" + address + "\",\"" + rating + "\",\"" + votes + "\"\n";
+		//return "\"" + name + "\",\"" + phone + "\",\"" + rating + "\",\"" + votes + "\",\"" + address + "\",\"" + locality + "\",\"" + city + "\"\n";
+		return "\"" + name + "\",\"" + phone + "\",\"" + rating + "\",\"" + votes + "\",\"" + locality + "\",\"" + city + "\"\n";
 	}
 	
 	@Override
 	public String toString() {
-		return name + "," + phone + "," + address + "," + rating + "," + votes;
+		//return name + "," + phone + "," + rating + "," + votes + "," + address + "," + locality + "," +  city;
+		return name + "," + phone + "," + rating + "," + votes + "," + locality + "," +  city;
 	}
 	
 }
