@@ -21,6 +21,8 @@ public class Searches extends Base implements Runnable {
 	private String city;
 	private String query;
 	
+	private Set<Data> allData = new HashSet<Data>();
+	
 	private List<Data> data;
 	
 	public Searches(String search, String city, String query) {
@@ -253,26 +255,34 @@ public class Searches extends Base implements Runnable {
 		// TODO : add pagination
 		// TODO : parse all pages
 		
+		int LIMIT = 20;
+		
 		String searchUrl = wd.getCurrentUrl();
 		int currentPageNumber = 1;
 		
+		if (searchUrl.contains("/search")) {
+			LIMIT = 5;
+		}
+		
 		// https://www.justdial.com/Bangalore/Restaurants-Pure-Veg/nct-10396867
 		// https://www.justdial.com/Bangalore/Restaurants-Pure-Veg/nct-10396867/page-2
-		
-		Set<Data> allData = new HashSet<Data>();
 		
 		List<Data> currentData = new ArrayList<Data>();
 		
 		do {
 			
 			if (currentPageNumber > 1) {
+				
+				int retryCount = -1;
+				
 				String nextUrl = searchUrl + "/page-" + currentPageNumber;
 				System.out.println("-> (expectation) " + nextUrl);
 				
 				String currentUrl = null;
 				
-				while (!nextUrl.equals(currentUrl)) {
+				while (!nextUrl.equals(currentUrl) && retryCount < 5) {
 					wd.get(nextUrl);
+					++retryCount;
 					currentUrl = wd.getCurrentUrl();
 					System.out.println("-> (reality) " + currentUrl);
 				}
@@ -286,13 +296,7 @@ public class Searches extends Base implements Runnable {
 			
 			++currentPageNumber;
 			
-		} while (currentData.size() > 0 && currentPageNumber <= 100);
-		
-		//save data in excel
-		saveDataInExcel(allData);
-		
-		//Close the browser, i.e. Web Driver
-		wd.close();
+		} while (currentData.size() > 0 && currentPageNumber <= LIMIT);
 		
 	}
 	
@@ -304,6 +308,19 @@ public class Searches extends Base implements Runnable {
 		} catch (Exception e) {
 			System.err.println("<- failed for (search) " + search + " (city) " + city + " (query) " + query);
 			e.printStackTrace();
+		} finally {
+			try {
+				//Close the browser, i.e. Web Driver
+				wd.close();
+			} catch (Exception e) {
+				
+			}
+			//save data in excel
+			if (allData.size() > 0) {
+				saveDataInExcel(allData);
+			} else {
+				System.out.println("<- No results for : "+query);
+			}
 		}
 		System.out.println("Thread Ends : "+query);
 		

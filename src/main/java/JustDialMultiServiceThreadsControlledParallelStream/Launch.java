@@ -37,7 +37,7 @@ public class Launch {
 		
 		// "Amritsar", "Jalandhar", "Ludhiana", "Pathankot", "Hoshiarpur", "Phagwara", "Nadala", "Bhogpur", "Miani", "Sujan Pura", "Batala", "Dharamshala", "Kullu", "Manali", "Sundar Nagar", "Palampur", "Kangra", "Jassur", "Hamirpur", "Una", "Nadaun", "Banikhet", "Chamba", "Nagrota", "Reasi", "Udhampur", "Jammu", "Katra", "Kathua", "Samba"
 		
-		List<String> cities = Arrays.asList("Amritsar");
+		List<String> cities = Arrays.asList("Amritsar", "Jalandhar", "Ludhiana", "Pathankot", "Hoshiarpur", "Phagwara", "Nadala", "Bhogpur", "Miani", "Sujan Pura", "Batala", "Dharamshala", "Kullu", "Manali", "Sundar Nagar", "Palampur", "Kangra", "Jassur", "Hamirpur", "Una", "Nadaun", "Banikhet", "Chamba", "Nagrota", "Reasi", "Udhampur", "Jammu", "Katra", "Kathua", "Samba");
 		
 		cities.parallelStream()
 				.forEach(city -> processItsServices(city));
