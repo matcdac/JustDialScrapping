@@ -29,6 +29,7 @@ public class ThreadsControl {
 		thread.start();
 		threads.add(thread);
 		currentActiveThreads++;
+		System.out.println("[Remaining] " + listOfRunnable.size());
 	}
 	
 	private void checkForTerminatedThreadsAndRemoveThemFromList() {
