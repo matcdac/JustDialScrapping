@@ -5,9 +5,9 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.concurrent.TimeUnit;
 
 import org.openqa.selenium.By;
@@ -21,7 +21,7 @@ public class Searches extends Base implements Runnable {
 	private String city;
 	private String query;
 	
-	private Set<Data> allData = new HashSet<Data>();
+	private Set<Data> allData = new TreeSet<Data>();
 	
 	private List<Data> data;
 	
